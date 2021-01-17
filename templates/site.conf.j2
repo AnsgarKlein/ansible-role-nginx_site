@@ -1,0 +1,101 @@
+###################################################
+####     This file is handled by Ansible !!!   ####
+#### Do NOT edit here, it will be overwritten! ####
+###################################################
+
+server {
+    server_name {{ nginx_site_server_name }};
+    listen      {{ nginx_site_http_port }};
+    listen      [::]:{{ nginx_site_http_port }};
+
+{% if nginx_site_ssl | bool %}
+{% if nginx_site_ssl_redirect | bool %}
+    # Forward everything to SSL
+    return      301 https://$host$request_uri;
+}
+
+server {
+    server_name {{ nginx_site_server_name }};
+{% endif %}
+
+    listen      {{ nginx_site_https_port }}      ssl{% if nginx_site_http2 %} http2{% endif %};
+    listen      [::]:{{ nginx_site_https_port }} ssl{% if nginx_site_http2 %} http2{% endif %};
+
+    # SSL settings
+    ssl_protocols             {{ nginx_site_ssl_protocols_str }};
+    ssl_session_cache         {{ nginx_site_ssl_session_cache }};
+    ssl_session_timeout       {{ nginx_site_ssl_session_timeout }};
+    ssl_session_tickets       {{ nginx_site_ssl_session_tickets }};
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers               {{ nginx_site_ssl_ciphers_str }};
+    #ssl_dhparam #TODO
+
+    # SSL certificate
+    ssl_certificate     {{ nginx_site_ssl_cert }};
+    ssl_certificate_key {{ nginx_site_ssl_key }};
+{% endif %}
+
+{% if nginx_site_keepalive | bool %}
+    # KeepAlive
+    keepalive_timeout  {{ nginx_site_keepalive_timeout }};
+    keepalive_requests {{ nginx_site_keepalive_requests }};
+    keepalive_disable  msie6;
+{% else %}
+    # Disable KeepAlive
+    keepalive_timeout 0;
+{% endif %}
+
+{% if nginx_site_sendfile | bool %}
+    # Performance optimizations
+    sendfile            on;
+    sendfile_max_chunk  {{ nginx_site_sendfile_max_chunk }};
+    tcp_nopush          on;
+    tcp_nodelay         on;
+{% endif %}
+
+
+{% if nginx_site_gzip | bool %}
+    # gzip (Warning: This may cause BREACH vulnerability!)
+    gzip on;
+{% else %}
+    # Turn off gzip (Mitigates BREACH vulnerability)
+    gzip off;
+{% endif %}
+
+    # Load configuration files for the default server block.
+    include /etc/nginx/default.d/*.conf;
+
+    # Protection against malicious clients
+    client_header_timeout {{ nginx_site_client_header_timeout }};
+    client_body_timeout   {{ nginx_site_client_body_timeout }};
+    client_max_body_size  {{ nginx_site_client_max_body_size }};
+
+    root {{ nginx_site_root }};
+
+    # Error codes:
+{% for error in nginx_site_errors %}
+    error_page {{ error.codes | join(' ') }} {{ error.location }};
+    location = {{ error.location }} {
+    }
+
+{% endfor %}
+
+    # Locations
+{% for location in nginx_site_locations %}
+    location {{ location.match }} {
+{% for option in location.options %}
+        {{ option }}
+{% endfor %}
+    }
+
+{% endfor %}
+
+{% if nginx_site_acme_redirect %}
+    # Rewrite for acme challenges
+    location /.well-known/acme-challenge/ {
+        #alias {{ nginx_site_acme_path }}/;
+        root {{ nginx_site_acme_path }}/;
+    }
+{% endif %}
+}
+

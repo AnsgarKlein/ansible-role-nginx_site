@@ -1,0 +1,53 @@
+---
+- name: 'Load distribution specific settings for nginx site'
+  include_vars: '{{ var_file }}'
+  failed_when: false
+  loop_control:
+    loop_var: 'var_file'
+  loop:
+    - 'vars/{{ ansible_os_family | lower }}.yml'
+    - 'vars/{{ ansible_distribution | lower }}.yml'
+    - 'vars/{{ ansible_distribution | lower }}{{ ansible_distribution_major_version }}.yml'
+    - 'vars/{{ ansible_distribution | lower }}{{ ansible_distribution_version }}.yml'
+    #  |  debian.yml       |  redhat.yml
+    #  |  ubuntu.yml       |  centos.yml
+    #  |  ubuntu18.yml     |  centos8.yml
+    #  v  ubuntu18.04.yml  |  centos8.4.yml
+
+- name: 'Configure nginx via separate conf.d/*.conf'
+  template:
+    src:   'site.conf.j2'
+    dest:  '/etc/nginx/conf.d/{{ __nginx_site_filename }}'
+    owner: 'root'
+    group: 'root'
+    mode:  '0644'
+  vars:
+    - __nginx_site_filename: '{% if nginx_site_filename | splitext | last == ".conf" %}{{ nginx_site_filename }}{% else %}{{ nginx_site_filename }}.conf{% endif %}'
+  notify: 'Restart nginx'
+
+# Removes config files named like nextcloud.conf.conf created by older
+# version of the previous task.
+#
+# TODO: Remove this task once all old config files have been replaced
+- name: 'Remove old duplicate of separate conf.d/*.conf nginx configuration'
+  file:
+    path:  '/etc/nginx/conf.d/{{ __nginx_site_filename }}.conf'
+    state: 'absent'
+  vars:
+    - __nginx_site_filename: '{% if nginx_site_filename | splitext | last == ".conf" %}{{ nginx_site_filename }}{% else %}{{ nginx_site_filename }}.conf{% endif %}'
+
+- name: 'Configure firewall for nginx (http)'
+  firewalld:
+    port: "{{ nginx_site_http_port }}/tcp"
+    permanent: 'yes'
+    immediate: 'yes'
+    state:     'enabled'
+
+- name: 'Configure firewall for nginx (https)'
+  firewalld:
+    port: "{{ nginx_site_https_port }}/tcp"
+    permanent: 'yes'
+    immediate: 'yes'
+    state:     'enabled'
+  when: 'nginx_site_ssl | bool'
+...

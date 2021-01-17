@@ -1,0 +1,66 @@
+---
+# Server specific settings
+nginx_site_filename: 'site.conf'
+nginx_site_server_name: '_'
+
+nginx_site_root: '{{ nginx_site_default_root }}'
+
+nginx_site_http_port:  80
+nginx_site_https_port: 443
+
+nginx_site_http2: true
+
+nginx_site_keepalive:          true
+nginx_site_keepalive_timeout:  '100'
+nginx_site_keepalive_requests: '65'
+
+nginx_site_client_header_timeout: '30s'
+nginx_site_client_body_timeout:   '30s'
+nginx_site_client_max_body_size:  '5M'
+
+nginx_site_sendfile:           True
+nginx_site_sendfile_max_chunk: '1M'
+
+nginx_site_ssl:                 false
+nginx_site_ssl_redirect:        true
+nginx_site_ssl_cert:            '/etc/pki/tls/certs/{{ ansible_fqdn }}_cert.pem'
+nginx_site_ssl_key:             '/etc/pki/tls/private/{{ ansible_fqdn }}_key.pem'
+nginx_site_ssl_session_cache:   'shared:SSL:5m'
+nginx_site_ssl_session_timeout: '5m'
+nginx_site_ssl_session_tickets: 'off'
+nginx_site_ssl_protocols:
+  - 'TLSv1.2'
+  - 'TLSv1.3'
+nginx_site_ssl_ciphers:
+  - 'ECDHE-ECDSA-AES256-GCM-SHA384'
+  - 'ECDHE-ECDSA-AES128-GCM-SHA256'
+  - 'ECDHE-ECDSA-CHACHA20-POLY1305'
+  - 'ECDHE-RSA-AES256-GCM-SHA384'
+  - 'ECDHE-RSA-AES128-GCM-SHA256'
+  - 'ECDHE-RSA-CHACHA20-POLY1305'
+  - 'DHE-RSA-AES256-GCM-SHA384'
+  - 'DHE-RSA-AES128-GCM-SHA256'
+
+
+# gzip only if non-SSL (BREACH vulnerability!)
+nginx_site_gzip: '{{ not nginx_site_ssl }}'
+
+nginx_site_errors:
+  - codes: ['404']
+    location: '/404.html'
+  - codes: ['500', '502', '503', '504']
+    location: '/50x.html'
+
+nginx_site_locations:
+  - match: '~* \.(?:jpg|jpeg|gif|png|svg|svgz|mp4|ogg|ogv|webm)$'
+    options:
+      - 'add_header Cache-Control public;'
+      - 'expires    1m; # 1 Minute'
+  - match: '/'
+    options:
+      - '# "no-cache" allows caching but etag is checked on each request'
+      - 'add_header Cache-Control no-cache;'
+
+nginx_site_acme_redirect: false
+nginx_site_acme_path:     '/etc/letsencrypt/webroot'
+...

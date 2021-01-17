@@ -1,0 +1,6 @@
+---
+nginx_site_default_root: '/usr/share/nginx/html'
+
+nginx_site_ssl_protocols_str: '{{ nginx_site_ssl_protocols | join(" ") }}'
+nginx_site_ssl_ciphers_str: '{{ nginx_site_ssl_ciphers | join(":") }}'
+...

@@ -1,0 +1,6 @@
+---
+nginx_site_default_root: '/var/www/html'
+
+nginx_site_ssl_cert_default_folder: '/etc/ssl/certs'
+nginx_site_ssl_key_default_folder:  '/etc/ssl/private'
+...

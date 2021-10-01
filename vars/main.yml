@@ -1,6 +1,9 @@
 ---
 nginx_site_default_root: '/usr/share/nginx/html'
 
+nginx_site_ssl_cert_folder: '/etc/pki/tls/certs'
+nginx_site_ssl_key_folder:  '/etc/pki/tls/private'
+
 nginx_site_ssl_protocols_str: '{{ nginx_site_ssl_protocols | join(" ") }}'
 nginx_site_ssl_ciphers_str: '{{ nginx_site_ssl_ciphers | join(":") }}'
 ...

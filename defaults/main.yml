@@ -23,8 +23,8 @@ nginx_site_sendfile_max_chunk: '1M'
 
 nginx_site_ssl:                 false
 nginx_site_ssl_redirect:        true
-nginx_site_ssl_cert:            '/etc/pki/tls/certs/{{ ansible_fqdn }}_cert.pem'
-nginx_site_ssl_key:             '/etc/pki/tls/private/{{ ansible_fqdn }}_key.pem'
+nginx_site_ssl_cert:            '{{ nginx_site_ssl_cert_default_folder }}/{{ ansible_fqdn }}_cert.pem'
+nginx_site_ssl_key:             '{{ nginx_site_ssl_key_default_folder }}/{{ ansible_fqdn }}_key.pem'
 nginx_site_ssl_session_cache:   'shared:SSL:5m'
 nginx_site_ssl_session_timeout: '5m'
 nginx_site_ssl_session_tickets: 'off'

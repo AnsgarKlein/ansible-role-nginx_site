@@ -3,6 +3,14 @@
 #### Do NOT edit here, it will be overwritten! ####
 ###################################################
 
+{% for upstream in nginx_site_upstreams %}
+upstream {{ upstream.name }} {
+{% for server in upstream.servers %}
+    server {{ server.name }} {{ server.options | default([]) | join(' ') }};
+{% endfor %}
+}
+{% endfor %}
+
 server {
     server_name {{ nginx_site_server_name }};
     listen      {{ nginx_site_http_port }};

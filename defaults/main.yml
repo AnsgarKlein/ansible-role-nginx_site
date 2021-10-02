@@ -1,5 +1,11 @@
 ---
-# Server specific settings
+nginx_site_upstreams: []
+#nginx_site_upstreams:
+#  - name: 'bunch_of_hosts'
+#    servers:
+#      - name: '127.0.0.1'
+#        options: []
+
 nginx_site_filename: 'site.conf'
 nginx_site_server_name: '_'
 
